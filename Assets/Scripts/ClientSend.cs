@@ -16,6 +16,7 @@ public class ClientSend : MonoBehaviour
         Client.instance.udp.SendData(_packet);
     }
 
+    #region Packets
     public static void WelcomeReceived()
     {
         using (Packet _packet = new Packet((int)ClientPackets.welcomeReceived))
@@ -42,4 +43,5 @@ public class ClientSend : MonoBehaviour
             SendUDPData(_packet);
         }
     }
+    #endregion
 }
