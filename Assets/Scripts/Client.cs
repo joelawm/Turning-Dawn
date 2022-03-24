@@ -4,6 +4,7 @@ using UnityEngine;
 using System.Net;
 using System.Net.Sockets;
 using System;
+using System.Text;
 
 public class Client : MonoBehaviour
 {
@@ -11,7 +12,7 @@ public class Client : MonoBehaviour
     public static int dataBufferSize = 4096;
     public string ip = "127.0.0.1";
     public int port = 26950;
-    public int myId = 0;
+    public int myId = 105801230;
     public TCP tcp;
     public UDP udp;
 
@@ -136,7 +137,17 @@ public class Client : MonoBehaviour
 
             using (Packet _packet = new Packet())
             {
+                Debug.Log("Sending Init Packet.");
                 SendData(_packet);
+
+                Debug.Log("Sending Test Data.");
+                Byte[] sendBytes = Encoding.ASCII.GetBytes("Is anybody there");
+                try {
+                    socket.Send(sendBytes, sendBytes.Length);
+                }
+                catch ( Exception e ) {
+                    Debug.Log(e);	
+                }
             }
         }
 
@@ -200,7 +211,7 @@ public class Client : MonoBehaviour
         packetHandlers = new Dictionary<int, PacketHandler>()
         {
             { (int)ServerPackets.welcome, ClientHandle.Welcome },
-            { (int)ServerPackets.udpTest, ClientHandle.UDPTest }
+            { (int)ServerPackets.spawnPlayer, ClientHandle.SpawnPlayer }
         };
         Debug.Log("Initialized packets.");
     }
