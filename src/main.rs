@@ -1,17 +1,18 @@
-use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
-use bevy::{prelude::*, transform};
+use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 use rand::prelude::*;
+use crate::utils::fps_counter::ScreenDiagsTextPlugin;
 
 pub const PLAYER_SPEED: f32 = 500.0;
 pub const PLAYER_SIZE: f32 = 64.0; // This is the player sprite size.
 pub const NUMBER_OF_ENEMIES: usize = 4;
 
+mod utils;
+
 fn main() {
 	App::new()
 		.add_plugins(DefaultPlugins)
-		.add_plugins(LogDiagnosticsPlugin::default())
-		.add_plugins(FrameTimeDiagnosticsPlugin::default())
+		.add_plugins(ScreenDiagsTextPlugin)
 		.add_systems(Startup, spawn_camera)
 		.add_systems(Startup, spawn_player)
 		.add_systems(Startup, spawn_enemies)
