@@ -1,1 +1,1 @@
-pub mod fps_counter;
+pub mod os_diags;

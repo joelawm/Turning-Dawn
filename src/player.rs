@@ -1,5 +1,7 @@
 use bevy::prelude::*;
 
+use crate::camera::ThirdPersonCameraTarget;
+
 pub struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
@@ -66,7 +68,7 @@ fn spawn_player(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, mut ma
 		material: materials.add(Color::BLUE),
 		transform: Transform::from_xyz(0.0, 0.5, 0.0),
 		..default()
-	}, Player, Speed(2.0));
+	}, Player, Speed(2.0), ThirdPersonCameraTarget);
 
 	commands.spawn(player);
 }

@@ -9,6 +9,6 @@ https://bevyengine.org/learn/quick-start/getting-started/setup/
 #### Start Client
 Run this to start the client.
 ```
-cargo run
+cargo run --features bevy/dynamic_linking
 ```
 
