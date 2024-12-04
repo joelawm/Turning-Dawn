@@ -1,5 +1,7 @@
-use super::{gamepad::orbit_gamepad, mouse::orbit_mouse, *,};
+use super::{mouse::orbit_mouse, *,};
 use bevy::window::{CursorGrabMode, PrimaryWindow};
+use super::offset::{toggle_x_offset, toggle_x_offset_condition};
+use {PlayerCameraTarget, PlayerCamera};
 
 pub struct SharedPlugin;
 
@@ -9,7 +11,7 @@ impl Plugin for SharedPlugin {
 			Update,
 			(
 				aim.run_if(aim_condition),
-				sync_player_camera.after(orbit_mouse).after(orbit_gamepad),
+				sync_player_camera.after(orbit_mouse),
 				toggle_x_offset.run_if(toggle_x_offset_condition),
 				toggle_cursor.run_if(toggle_cursor_condition),
 			),
@@ -17,8 +19,10 @@ impl Plugin for SharedPlugin {
 	}
 }
 
-fn sync_player_camera(player_q: Query<&Transform, With<ThirdPersonCameraTarget>>,
-	mut cam_q: Query<(&mut ThirdPersonCamera, &mut Transform), Without<ThirdPersonCameraTarget>>) {
+fn sync_player_camera(
+	player_q: Query<&Transform, With<PlayerCameraTarget>>,
+	mut cam_q: Query<(&mut PlayerCamera, &mut Transform), Without<PlayerCameraTarget>>
+) {
 	let Ok(player) = player_q.get_single() else {
 		return;
 	};
@@ -42,15 +46,18 @@ fn sync_player_camera(player_q: Query<&Transform, With<ThirdPersonCameraTarget>>
 	cam_transform.translation = desired_translation + player.translation;
 }
 
-fn aim(mut cam_q: Query<(&mut ThirdPersonCamera, &Transform), (With<ThirdPersonCamera>, Without<ThirdPersonCameraTarget>)>,
-	mouse: Res<ButtonInput<MouseButton>>,mut player_q: Query<&mut Transform, With<ThirdPersonCameraTarget>>, 
-	btns: Res<ButtonInput<GamepadButton>>, time: Res<Time>) {
+fn aim(
+	mut cam_q: Query<(&mut PlayerCamera, &Transform), (With<PlayerCamera>, Without<PlayerCameraTarget>)>,
+	mouse: Res<ButtonInput<MouseButton>>,
+	mut player_q: Query<&mut Transform, With<PlayerCameraTarget>>, 
+	time: Res<Time>
+) {
 	let Ok((mut cam, cam_transform)) = cam_q.get_single_mut() else {
 		return;
 	};
 
 	// check if aim button was pressed
-	let aim_btn = mouse.pressed(cam.aim_button) || btns.pressed(cam.gamepad_settings.aim_button);
+	let aim_btn = mouse.pressed(cam.aim_button);
 
 	if aim_btn {
 		// rotate player or target to face direction he is aiming
@@ -67,7 +74,7 @@ fn aim(mut cam_q: Query<(&mut ThirdPersonCamera, &Transform), (With<ThirdPersonC
 			cam.zoom.radius_copy = Some(cam.zoom.radius);
 		}
 
-		let zoom_factor = (cam.zoom.radius_copy.unwrap() / cam.aim_zoom) * cam.aim_speed * time.delta_seconds();
+		let zoom_factor = (cam.zoom.radius_copy.unwrap() / cam.aim_zoom) * cam.aim_speed * time.delta_secs();
 
 		// stop zooming in if current radius is less than desired zoom
 		if cam.zoom.radius <= desired_zoom || cam.zoom.radius - zoom_factor <= desired_zoom {
@@ -77,7 +84,7 @@ fn aim(mut cam_q: Query<(&mut ThirdPersonCamera, &Transform), (With<ThirdPersonC
 		}
 	} else {
 		if let Some(radius_copy) = cam.zoom.radius_copy {
-			let zoom_factor = (radius_copy / cam.aim_zoom) * cam.aim_speed * time.delta_seconds();
+			let zoom_factor = (radius_copy / cam.aim_zoom) * cam.aim_speed * time.delta_secs();
 
 			// stop zooming out if current radius is greater than original radius
 			if cam.zoom.radius >= radius_copy || cam.zoom.radius + zoom_factor >= radius_copy {
@@ -85,41 +92,13 @@ fn aim(mut cam_q: Query<(&mut ThirdPersonCamera, &Transform), (With<ThirdPersonC
 				cam.zoom.radius_copy = None;
 			} else {
 				cam.zoom.radius +=
-					(radius_copy / cam.aim_zoom) * cam.aim_speed * time.delta_seconds();
+					(radius_copy / cam.aim_zoom) * cam.aim_speed * time.delta_secs();
 			}
 		}
 	}
 }
 
-// inverts the x offset. Example: left shoulder view -> right shoulder view & vice versa
-fn toggle_x_offset(mut cam_q: Query<&mut ThirdPersonCamera, With<ThirdPersonCamera>>, 
-	keys: Res<ButtonInput<KeyCode>>, time: Res<Time>, btns: Res<ButtonInput<GamepadButton>>) {
-	let Ok(mut cam) = cam_q.get_single_mut() else {
-		return;
-	};
-
-	// check if toggle btn was pressed
-	let toggle_btn = keys.just_pressed(cam.offset_toggle_key)
-		|| btns.just_pressed(cam.gamepad_settings.offset_toggle_button);
-
-	if toggle_btn {
-		// Switch direction by inverting the offset_flag
-		cam.offset.is_transitioning = !cam.offset.is_transitioning;
-	}
-
-	// Determine the transition speed based on direction
-	let transition_speed = if cam.offset.is_transitioning {
-		-cam.offset_toggle_speed
-	} else {
-		cam.offset_toggle_speed
-	};
-
-	// Update the offset based on the direction and time
-	cam.offset.offset.0 = (cam.offset.offset.0 + transition_speed * time.delta_seconds())
-		.clamp(-cam.offset.offset_copy.0, cam.offset.offset_copy.0);
-}
-
-fn toggle_cursor(mut cam_q: Query<&mut ThirdPersonCamera>, keys: Res<ButtonInput<KeyCode>>, mut window_q: Query<&mut Window, With<PrimaryWindow>>) {
+fn toggle_cursor(mut cam_q: Query<&mut PlayerCamera>, keys: Res<ButtonInput<KeyCode>>, mut window_q: Query<&mut Window, With<PrimaryWindow>>) {
 	let Ok(mut cam) = cam_q.get_single_mut() else {
 		return;
 	};
@@ -130,40 +109,24 @@ fn toggle_cursor(mut cam_q: Query<&mut ThirdPersonCamera>, keys: Res<ButtonInput
 
 	let mut window = window_q.get_single_mut().unwrap();
 	if cam.cursor_lock_active {
-		window.cursor.grab_mode = CursorGrabMode::Locked;
-		window.cursor.visible = false;
+		window.cursor_options.grab_mode = CursorGrabMode::Locked;
+		window.cursor_options.visible = false;
 	} else {
-		window.cursor.grab_mode = CursorGrabMode::None;
-		window.cursor.visible = true;
+		window.cursor_options.grab_mode = CursorGrabMode::None;
+		window.cursor_options.visible = true;
 	}
 }
 
 // checks if the toggle cursor functionality is enabled
-fn toggle_cursor_condition(cam_q: Query<&ThirdPersonCamera>) -> bool {
+fn toggle_cursor_condition(cam_q: Query<&PlayerCamera>) -> bool {
 	let Ok(cam) = cam_q.get_single() else {
 		return true;
 	};
 	cam.cursor_lock_toggle_enabled
 }
 
-// only zoom if zoom is enabled & the cursor lock feature is enabled & active
-pub fn zoom_condition(cam_q: Query<&ThirdPersonCamera, With<ThirdPersonCamera>>) -> bool {
-	let Ok(cam) = cam_q.get_single() else {
-		return false;
-	};
-	return cam.zoom_enabled && cam.cursor_lock_active;
-}
-
-// only run toggle_x_offset if `offset_toggle_enabled` is true
-fn toggle_x_offset_condition(cam_q: Query<&ThirdPersonCamera, With<ThirdPersonCamera>>) -> bool {
-	let Ok(cam) = cam_q.get_single() else {
-		return false;
-	};
-	cam.offset_toggle_enabled
-}
-
 // only run aiming logic if `aim_enabled` is true
-fn aim_condition(cam_q: Query<&ThirdPersonCamera, With<ThirdPersonCamera>>) -> bool {
+fn aim_condition(cam_q: Query<&PlayerCamera, With<PlayerCamera>>) -> bool {
 	let Ok(cam) = cam_q.get_single() else {
 		return false;
 	};

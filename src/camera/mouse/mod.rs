@@ -1,6 +1,9 @@
-use bevy::{input::mouse::{MouseMotion, MouseWheel}, prelude::*, window::PrimaryWindow};
+use bevy::{input::mouse::MouseMotion, prelude::*, window::PrimaryWindow};
 use std::f32::consts::PI;
-use super::{shared::zoom_condition, ThirdPersonCamera};
+use zoom::{ zoom_condition, zoom_mouse};
+use crate::camera::PlayerCamera;
+
+pub mod zoom;
 
 pub struct MousePlugin;
 
@@ -13,7 +16,7 @@ impl Plugin for MousePlugin {
 // heavily referenced https://bevy-cheatbook.github.io/cookbook/pan-orbit-camera.html
 pub fn orbit_mouse(
 	window_q: Query<&Window, With<PrimaryWindow>>,
-	mut cam_q: Query<(&ThirdPersonCamera, &mut Transform), With<ThirdPersonCamera>>,
+	mut cam_q: Query<(&PlayerCamera, &mut Transform), With<PlayerCamera>>,
 	mouse: Res<ButtonInput<MouseButton>>,
 	mut mouse_evr: EventReader<MouseMotion>,
 ) {
@@ -56,23 +59,8 @@ pub fn orbit_mouse(
 	cam_transform.translation = rot_matrix.mul_vec3(Vec3::new(0.0, 0.0, cam.zoom.radius));
 }
 
-fn zoom_mouse(mut scroll_evr: EventReader<MouseWheel>, mut cam_q: Query<&mut ThirdPersonCamera>) {
-	let mut scroll = 0.0;
-	for ev in scroll_evr.read() {
-		scroll += ev.y;
-	}
-
-	if let Ok(mut cam) = cam_q.get_single_mut() {
-		if scroll.abs() > 0.0 {
-			let new_radius =
-				cam.zoom.radius - scroll * cam.zoom.radius * 0.1 * cam.zoom_sensitivity;
-			cam.zoom.radius = new_radius.clamp(cam.zoom.min, cam.zoom.max);
-		}
-	}
-}
-
 // only run the orbit system if the cursor lock is disabled
-fn orbit_condition(cam_q: Query<&ThirdPersonCamera>) -> bool {
+fn orbit_condition(cam_q: Query<&PlayerCamera>) -> bool {
 	let Ok(cam) = cam_q.get_single() else {
 		return true;
 	};

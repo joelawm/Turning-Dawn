@@ -10,9 +10,12 @@ const FPS_MISSING: &str = "FPS: ???";
 #[derive(Component)]
 pub struct ScreenDiagsFPS;
 
-pub fn update(time: Res<Time>, diagnostics: Res<DiagnosticsStore>, state_resource: Option<ResMut<ScreenDiagsState>>, mut text_query: Query<&mut Text, With<ScreenDiagsFPS>>) {
+pub fn update(time: Res<Time<Fixed>>, diagnostics: Res<DiagnosticsStore>, state_resource: Option<ResMut<ScreenDiagsState>>, mut text_query: Query<&mut Text, With<ScreenDiagsFPS>>) {
 	let mut state = match state_resource {
-		None => return,
+		None => {
+			bevy::log::error!("ScreenDiagsFPS state resource not found"); 
+			return;
+		},
 		Some(state) => state,
 	};
 
@@ -20,7 +23,7 @@ pub fn update(time: Res<Time>, diagnostics: Res<DiagnosticsStore>, state_resourc
 		if state.timer.paused() {
 			// Time is paused so remove text
 			for mut text in text_query.iter_mut() {
-				let value = &mut text.sections[0].value;
+				let value = &mut text.0;
 				value.clear();
 			}
 		} else {
@@ -28,11 +31,18 @@ pub fn update(time: Res<Time>, diagnostics: Res<DiagnosticsStore>, state_resourc
 
 			for mut text in text_query.iter_mut() {
 				//let borrowed_text = &mut text;
-				let fps_value = &mut text.sections[0].value;
+				let fps_value = &mut text.0;
 				fps_value.clear();
 
 				if let Some(fps) = fps_diags {
-					write!(fps_value, "{}{:.0}", FPS_FORMAT, fps).unwrap();
+					match write!(fps_value, "{}{:.0}", FPS_FORMAT, fps) {
+						Ok(_) => {},
+						Err(e) => {
+							bevy::log::error!("Error writing FPS to text: {}", e);
+							fps_value.clear();
+							write!(fps_value, "{}", FPS_MISSING).unwrap();
+						}
+					}
 				} else {
 					fps_value.clear();
 					write!(fps_value, "{}", FPS_MISSING).unwrap();
