@@ -1,6 +1,6 @@
 use bevy::prelude::*;
+use bevy_rapier3d::plugin::{NoUserData, RapierPhysicsPlugin};
 
-mod camera;
 mod light;
 mod player;
 mod utils;
@@ -9,13 +9,12 @@ mod window;
 
 fn main() {
 	App::new().add_plugins((
-		DefaultPlugins, 
+		DefaultPlugins,
+		RapierPhysicsPlugin::<NoUserData>::default(), 
 		player::PlayerPlugin, 
-		camera::Camera3DPlugin, 
-		camera::PlayerCameraPlugin, 
 		light::LightPlugin, 
 		level::LevelPlugin, 
-		utils::os_diags::ScreenDiagsTextPlugin,
+		utils::os_diags::DebugMenuPlugin,
 		window::WindowSettingsPlugin,
 	)).run();
 }

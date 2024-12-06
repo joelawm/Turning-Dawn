@@ -15,15 +15,17 @@ fn init_level(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, mut mate
 		..default()
 	});
 
+	// Ground
 	commands.spawn((
-        //Collider::cuboid(1000., 0., 1000.),
+        Collider::cuboid(1000., 0., 1000.),
 		Mesh3d(meshes.add(Plane3d::new(Vec3::Y, Vec2::splat(1000.)))),
 		MeshMaterial3d(level_material.clone()),
 		Transform::IDENTITY,
     ));
 
+	// Target Wall
     commands.spawn((
-        //Collider::cuboid(30., 30., 30.),
+        Collider::cuboid(30., 30., 30.),
 		Mesh3d(meshes.add(Cuboid::from_length(60.))),
 		MeshMaterial3d(level_material.clone()),
 		Transform::from_xyz(0., 0., -100.),
