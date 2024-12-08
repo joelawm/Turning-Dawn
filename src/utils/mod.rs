@@ -1,1 +1,1 @@
-pub mod os_diags;
+pub mod diagnostics;

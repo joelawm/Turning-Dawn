@@ -14,7 +14,7 @@ fn main() {
 		player::PlayerPlugin, 
 		light::LightPlugin, 
 		level::LevelPlugin, 
-		utils::os_diags::DebugMenuPlugin,
+		utils::diagnostics::DebugMenuPlugin,
 		window::WindowSettingsPlugin,
 	)).run();
 }

@@ -30,7 +30,6 @@ pub fn update(time: Res<Time<Real>>, diagnostics: Res<DiagnosticsStore>, state_r
 			let fps_diags = extract_fps(&diagnostics);
 
 			for mut text in text_query.iter_mut() {
-				//let borrowed_text = &mut text;
 				let fps_value = &mut text.0;
 				fps_value.clear();
 

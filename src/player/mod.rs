@@ -13,7 +13,7 @@ impl Plugin for PlayerPlugin {
 		.init_resource::<controller::PlayerControllerState>()
 		.add_plugins(controller::PlayerControllerPlugin)
 		.add_systems(Startup, spawn_player)
-		.add_systems(Update, (camera::update_camera_controller, zoom::zoom_mouse))
+		.add_systems(Update, (camera::update_camera_controller, zoom::zoom))
 		.add_systems(FixedUpdate, controller::update_movement);
 	}
 }
@@ -54,12 +54,12 @@ fn spawn_player(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, mut ma
 	)).id();
 
 	let player = commands.spawn((
-		Mesh3d(meshes.add(Mesh::from(Cuboid::new(1.0, 10.0, 1.0)))),
+		Mesh3d(meshes.add(Mesh::from(Cuboid::new(2.0, 5.0, 2.0)))),
         MeshMaterial3d(materials.add(Color::from(BLUE))),
-		Transform::from_xyz(0.0, 20., 0.0),
+		Transform::from_xyz(0.0, 5.1, 0.0),
 		Player::default(), 
 		controller::PlayerController::default(),
-		Collider::cuboid(1., 10., 1.),
+		Collider::cuboid(1.0, 2.5, 1.0),
         RigidBody::KinematicPositionBased,
         KinematicCharacterController{
             up : Vec3::Y,
