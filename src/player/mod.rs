@@ -1,5 +1,5 @@
-use bevy::{color::palettes::css::BLUE, prelude::*};
-use bevy_rapier3d::prelude::*;
+use bevy::{log, prelude::*};
+use avian3d::prelude::*;
 
 pub mod controller;
 mod camera;
@@ -42,7 +42,9 @@ impl Default for Player {
 }
 
 /// Player spawn system
-fn spawn_player(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, mut materials: ResMut<Assets<StandardMaterial>>) {
+fn spawn_player(mut commands: Commands, meshes: Res<Assets<Mesh>>, asset_server: Res<AssetServer>) {
+	let handle: Handle<Scene> = asset_server.load("models/Base_Character.glb#Scene0");
+
 	let camera = commands.spawn((
 		Camera3d::default(),
 		Transform::IDENTITY,
@@ -53,21 +55,21 @@ fn spawn_player(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, mut ma
         camera::CameraController::default(),
 	)).id();
 
+	let player_entity = commands.spawn((
+		SceneRoot(handle.clone()),
+		Transform::IDENTITY,
+		ColliderConstructorHierarchy::new(ColliderConstructor::ConvexDecompositionFromMesh),
+		RigidBody::Kinematic,
+	)).id();
+
 	let player = commands.spawn((
-		Mesh3d(meshes.add(Mesh::from(Cuboid::new(2.0, 5.0, 2.0)))),
-        MeshMaterial3d(materials.add(Color::from(BLUE))),
-		Transform::from_xyz(0.0, 5.1, 0.0),
+		Transform::from_xyz(0.0, 0.0, 0.0),
 		Player::default(), 
 		controller::PlayerController::default(),
-		Collider::cuboid(1.0, 2.5, 1.0),
-        RigidBody::KinematicPositionBased,
-        KinematicCharacterController{
-            up : Vec3::Y,
-            offset : CharacterLength::Absolute(0.01),
-            ..default()
-        }
+		Visibility::Visible,
 	)).id();
 
 	commands.entity(camera);
-    commands.entity(player).add_child(camera);
+    commands.entity(player).add_child(player_entity).add_child(camera);
 }
+//0.0015340410077627612 4096, 2074

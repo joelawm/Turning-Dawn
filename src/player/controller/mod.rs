@@ -42,6 +42,7 @@ pub struct PlayerController {
 	pub main_menu: KeyCode,
 	pub camera_perspective: KeyCode,
 	pub free_look: KeyCode,
+	pub inventory: KeyCode,
 }
 
 impl Default for PlayerController {
@@ -56,6 +57,7 @@ impl Default for PlayerController {
 			main_menu: KeyCode::Escape,
 			camera_perspective: KeyCode::ArrowUp,
 			free_look: KeyCode::AltLeft,
+			inventory: KeyCode::Tab,
 		}
 	}
 }
@@ -157,7 +159,7 @@ pub fn update_movement(
         controller.translation = Some(player.velocity * time.timestep().as_secs_f32());
 
 		// Rotate the player to face the direction of movement
-		//transform.look_to(Vec3::new(input.direction.x, 0.0, input.direction.y), Vec3::ZERO);
+		//transform.look_to(Vec3::new(forward.x, 0.0, forward.y), Vec3::Y);
     }
 }
 

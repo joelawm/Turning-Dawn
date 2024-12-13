@@ -6,6 +6,7 @@ edition = "2021"
 [dependencies]
 bevy = {version = "0.15.0", features = ["dynamic_linking"]}
 bevy_rapier3d = {git = "https://github.com/Vrixyz/bevy_rapier", branch = "master-bevy_0.15"}
+avian3d = { git = "https://github.com/Jondolf/avian", branch = "main" }
 
 # Enable a small amount of optimization in debug mode
 [profile.dev]
